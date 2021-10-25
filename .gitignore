@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# specific executable and generated files
+*/nbody_barnes_hut
+*/nbody_brute_force
+*/*.png
+*.*.data
