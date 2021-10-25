@@ -1,6 +1,8 @@
 #ifndef NBODY_TOOLS_H
 #define NBODY_TOOLS_H
 #include "nbody.h"
+#include <string.h>
+
 
 /* draw recursively the content of a node */
 void draw_node(node_t* n);
@@ -31,5 +33,8 @@ void free_node(node_t* n);
 node_t* alloc_node();
 
 void free_root(node_t*root);
+
+/* Print to error channel */
+void error(char* text);
 
 #endif	/* NBODY_TOOLS_H */
