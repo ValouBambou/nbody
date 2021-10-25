@@ -13,6 +13,7 @@ def plot_speedup(x_threads:List[int], y_dict:Dict[str, List[float]], filename:st
     plt.title(title)
     plt.xlabel("number of threads")
     plt.ylabel("speedup")
+    plt.legend()
     plt.savefig(filename)
     plt.show()
 
@@ -25,18 +26,19 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
             print("Lauching {} with {} threads".format(command, n))
             process = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE)
             output, _ = process.communicate()
-            print(output)
-            speedup[i] = float(output)
+            s = str(output.splitlines()[4])
+            speedup[i] = float(s.split(' ')[2])
+            print("time taken = {} s".format(speedup[i]))
             f.write("{}\t{}".format(n, speedup[i]))
             i += 1
     return speedup
 
 def main():
     nthreads = [i for i in range(1, 16)]
-    nparticles = 1000
+    nparticles = 100
     ntime = 5
-    command1 = "./nbody_brute_force {} {} | grep 'took' | cut -f3 -d ' '".format(nparticles, ntime)
-    command2 = "./nbody_barnes_hut {} {} | grep 'took' | cut -f3 -d ' '".format(nparticles, ntime)
+    command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
+    command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
 
     speedup1 = generate_data(command1, nthreads, "bruteforce.data")
     speedup2 = generate_data(command2, nthreads, "barnes_hut.data")
