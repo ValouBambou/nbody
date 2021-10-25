@@ -16,6 +16,7 @@
 #include <X11/Xutil.h>
 #endif
 
+#include <omp.h>
 #include "ui.h"
 #include "nbody.h"
 #include "nbody_tools.h"
@@ -89,6 +90,7 @@ void all_move_particles(double step)
 {
   /* First calculate force for particles. */
   int i;
+  #pragma omp parallel for private(i) schedule(static)
   for(i=0; i<nparticles; i++) {
     int j;
     particles[i].x_force = 0;

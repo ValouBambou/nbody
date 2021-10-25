@@ -3,6 +3,7 @@
 from typing import Dict, List
 import subprocess
 import matplotlib.pyplot as plt
+import os
 
 
 def plot_speedup(x_threads:List[int], y_dict:Dict[str, List[float]], filename:str, title:str) -> None:
@@ -20,22 +21,25 @@ def plot_speedup(x_threads:List[int], y_dict:Dict[str, List[float]], filename:st
 
 def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
     speedup = [1.0 for _ in range(len(nthreads))]
+    monothreadtime = 1.0
     i = 0
     with open(filename, "w") as f:
         for n in nthreads:
             print("Lauching {} with {} threads".format(command, n))
-            process = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE)
+            process = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE, env={'OMP_NUM_THREADS':str(n)})
             output, _ = process.communicate()
             s = str(output.splitlines()[4])
-            speedup[i] = float(s.split(' ')[2])
-            print("time taken = {} s".format(speedup[i]))
+            if n == 1:
+                monothreadtime = float(s.split(' ')[2])
+            speedup[i] = monothreadtime / float(s.split(' ')[2])
+            print("time taken = {} s".format(float(s.split(' ')[2])))
             f.write("{}\t{}".format(n, speedup[i]))
             i += 1
     return speedup
 
 def main():
     nthreads = [i for i in range(1, 16)]
-    nparticles = 100
+    nparticles = 1000
     ntime = 5
     command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
     command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
