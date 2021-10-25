@@ -56,3 +56,5 @@ dkms.conf
 */nbody_brute_force
 */*.png
 *.*.data
+*/*.inc
+*/*.txt
