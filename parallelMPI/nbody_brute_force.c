@@ -19,6 +19,7 @@
 #include "ui.h"
 #include "nbody.h"
 #include "nbody_tools.h"
+#include <mpi.h>
 
 FILE* f_out=NULL;
 
@@ -87,9 +88,15 @@ void move_particle(particle_t*p, double step) {
 */
 void all_move_particles(double step)
 {
+  int size, rank, lower_bound;
+  MPI_Init(NULL, NULL);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  lower_bound = rank * (nparticles / size);
+
   /* First calculate force for particles. */
   int i;
-  for(i=0; i<nparticles; i++) {
+  for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
     int j;
     particles[i].x_force = 0;
     particles[i].y_force = 0;
@@ -101,11 +108,13 @@ void all_move_particles(double step)
   }
 
   // barrier
+  MPI_Barrier(MPI_COMM_WORLD);
 
   /* then move all particles and return statistics */
-  for(i=0; i<nparticles; i++) {
+  for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
     move_particle(&particles[i], step);
   }
+  MPI_Finalize();
 }
 
 /* display all the particles */
@@ -128,6 +137,7 @@ void print_all_particles(FILE* f) {
 
 void run_simulation() {
   double t = 0.0, dt = 0.01;
+
   while (t < T_FINAL && nparticles>0) {
     /* Update time. */
     t += dt;
@@ -177,7 +187,9 @@ int main(int argc, char**argv)
   gettimeofday(&t1, NULL);
 
   /* Main thread starts simulation ... */
+
   run_simulation();
+  error("before mpi finalize");
 
   gettimeofday(&t2, NULL);
 
@@ -206,6 +218,7 @@ int main(int argc, char**argv)
   getchar();
   /* Close the X window used to display the particles */
   XCloseDisplay(theDisplay);
+
 #endif
   return 0;
 }
