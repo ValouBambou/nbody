@@ -270,7 +270,3 @@ void free_node(node_t* n) {
     mem_free(&mem_node, n->children);
   }
 }
-
-void print_error(char* text) {
-  fprintf(stderr, "error : %s\n", text);
-}

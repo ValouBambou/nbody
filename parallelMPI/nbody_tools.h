@@ -32,7 +32,7 @@ node_t* alloc_node();
 
 void free_root(node_t*root);
 
-/* Print to error channel */
-void print_error(char* text);
+#define DEBUG_PRINT(fmt, args...) fprintf(stderr, "DEBUG: %s:%d:%s(): " fmt, \
+    __FILE__, __LINE__, __func__, ##args)
 
 #endif	/* NBODY_TOOLS_H */

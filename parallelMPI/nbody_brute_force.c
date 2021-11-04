@@ -102,8 +102,10 @@ void all_move_particles(double step, int lower_bound, int size)
   }
 
   // barrier
-  print_error("synchro");
+  DEBUG_PRINT("synchro, process %d is waiting\n", lower_bound / (nparticles/size));
   MPI_Barrier(MPI_COMM_WORLD);
+  DEBUG_PRINT("post-synchro, process %d is running normally\n", lower_bound / (nparticles/size));
+
 
   /* then move all particles and return statistics */
   for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
@@ -137,7 +139,7 @@ void run_simulation() {
   lower_bound = rank * (nparticles / size);
   double t = 0.0, dt = 0.01;
 
-  print_error("Successful MPI Init\n");
+  DEBUG_PRINT("Successful MPI Init\n");
   while (t < T_FINAL && nparticles>0) {
     /* Update time. */
     t += dt;
@@ -189,9 +191,9 @@ int main(int argc, char**argv)
 
   /* Main thread starts simulation ... */
 
-  print_error("aaa");
+  DEBUG_PRINT("aaa\n");
   run_simulation();
-  print_error("bbb");
+  DEBUG_PRINT("bbb\n");
 
   gettimeofday(&t2, NULL);
 
