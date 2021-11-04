@@ -18,37 +18,41 @@ def plot_speedup(x_threads:List[int], y_dict:Dict[str, List[float]], filename:st
     plt.show()
 
 
-def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
-    speedup = [1.0 for _ in range(len(nthreads))]
+def generate_data(command:str, nprocesses:List[int], filename:str) -> List[float]:
+    speedup = [1.0 for _ in range(len(nprocesses))]
     i = 0
+    monothreadtime = 1.0
     with open(filename, "w") as f:
-        for n in nthreads:
+        for n in nprocesses:
             command_new = "mpirun -n {} {}".format(n, command)
             print("Lauching {}".format(command_new))
             process = subprocess.Popen(command_new.split(' '), stdout=subprocess.PIPE)
             output, _ = process.communicate()
             s = str(output.splitlines()[4])
-            speedup[i] = float(s.split(' ')[2])
-            print("time taken = {} s".format(speedup[i]))
+            if n == 1:
+                monothreadtime = float(s.split(' ')[2])
+            speedup[i] = monothreadtime / float(s.split(' ')[2])
+            print("time taken = {} s".format(float(s.split(' ')[2])))
             f.write("{}\t{}\n".format(n, speedup[i]))
             i += 1
     return speedup
 
 def main():
     subprocess.Popen("make").communicate()
-    nthreads = [i for i in range(1, 16)]
+    nprocesses = [i for i in range(1, 9)] # 9 is the max on my labtop
     nparticles = 100
     ntime = 5
     command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
-    command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
+    # command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
 
     subprocess.Popen("rm *.data", shell=True).communicate()
-    speedup1 = generate_data(command1, nthreads, "bruteforce.data")
-    speedup2 = generate_data(command2, nthreads, "barnes_hut.data")
+    speedup1 = generate_data(command1, nprocesses, "bruteforce.data")
+    print(speedup1)
+    # speedup2 = generate_data(command2, nprocesses, "barnes_hut.data")
 
     subprocess.Popen("rm *.png", shell=True).communicate()
-    plot_speedup(nthreads, {"MPI":speedup1}, "bruteforceMPIspeedup.png", "Brute force speedup")
-    plot_speedup(nthreads, {"MPI":speedup2}, "barnes_hutMPIspeedup.png", "Barnes Hut speedup")
+    plot_speedup(nprocesses, {"MPI":speedup1}, "bruteforceMPIspeedup.png", "Brute force speedup")
+    # plot_speedup(nprocesses, {"MPI":speedup2}, "barnes_hutMPIspeedup.png", "Barnes Hut speedup")
 
 if __name__ == '__main__':
     main()
