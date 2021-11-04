@@ -30,20 +30,23 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
             s = str(output.splitlines()[4])
             speedup[i] = float(s.split(' ')[2])
             print("time taken = {} s".format(speedup[i]))
-            f.write("{}\t{}".format(n, speedup[i]))
+            f.write("{}\t{}\n".format(n, speedup[i]))
             i += 1
     return speedup
 
 def main():
+    subprocess.Popen("make").communicate()
     nthreads = [i for i in range(1, 16)]
     nparticles = 100
     ntime = 5
     command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
     command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
 
+    subprocess.Popen("rm *.data", shell=True).communicate()
     speedup1 = generate_data(command1, nthreads, "bruteforce.data")
     speedup2 = generate_data(command2, nthreads, "barnes_hut.data")
 
+    subprocess.Popen("rm *.png", shell=True).communicate()
     plot_speedup(nthreads, {"MPI":speedup1}, "bruteforceMPIspeedup.png", "Brute force speedup")
     plot_speedup(nthreads, {"MPI":speedup2}, "barnes_hutMPIspeedup.png", "Barnes Hut speedup")
 
