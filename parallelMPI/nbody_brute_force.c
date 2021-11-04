@@ -83,16 +83,16 @@ void move_particle(particle_t *p, double step)
 }
 
 double *xforces, *yforces;
+int* local_sizes, *displs;
 /*
   Move particles one time step.
 
   Update positions, velocity, and acceleration.
   Return local computations.
 */
-void all_move_particles(double step, int lower_bound, int upper_bound)
+void all_move_particles(double step, int lower_bound, int upper_bound, int np_local)
 {
   /* First calculate force for particles. */
-  int np_local = upper_bound - lower_bound; // nparticle for each MPI process
   double *xforces_local = malloc(sizeof(double) * np_local);
   double *yforces_local = malloc(sizeof(double) * np_local);
   int i;
@@ -111,8 +111,8 @@ void all_move_particles(double step, int lower_bound, int upper_bound)
     yforces_local[i - lower_bound] = particles[i].y_force;
   }
   // ask for forces computed by other processes
-  MPI_Allgather(xforces_local, np_local, MPI_DOUBLE, xforces, np_local, MPI_DOUBLE, MPI_COMM_WORLD);
-  MPI_Allgather(yforces_local, np_local, MPI_DOUBLE, yforces, np_local, MPI_DOUBLE, MPI_COMM_WORLD);
+  MPI_Allgatherv(xforces_local, np_local, MPI_DOUBLE, xforces, local_sizes, displs, MPI_DOUBLE, MPI_COMM_WORLD);
+  MPI_Allgatherv(yforces_local, np_local, MPI_DOUBLE, yforces, local_sizes, displs, MPI_DOUBLE, MPI_COMM_WORLD);
   free(xforces_local);
   free(yforces_local);
 
@@ -147,22 +147,22 @@ void print_all_particles(FILE *f)
   }
 }
 
-void run_simulation()
+void run_simulation(int rank, int size)
 {
-  int size, rank, lower_bound, upper_bound;
-
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int lower_bound, upper_bound;
   lower_bound = rank * (nparticles / size);
   upper_bound = (rank == size - 1) ? nparticles : lower_bound + (nparticles / size);
+  int np_local = upper_bound - lower_bound; // nparticle for each MPI process
   double t = 0.0, dt = 0.01;
+  MPI_Allgather(&np_local, 1, MPI_INT, local_sizes, 1, MPI_INT, MPI_COMM_WORLD); //   local_sizes[rank] = np_local; for each process
+  MPI_Allgather(&lower_bound, 1, MPI_INT, displs, 1, MPI_INT, MPI_COMM_WORLD); //   displs[rank] = lower_bound; for each process
 
   while (t < T_FINAL && nparticles > 0)
   {
     /* Update time. */
     t += dt;
     /* Move particles with the current and compute rms velocity. */
-    all_move_particles(dt, lower_bound, upper_bound);
+    all_move_particles(dt, lower_bound, upper_bound, np_local);
 
     /* Adjust dt based on maximum speed and acceleration--this
        simple rule tries to insure that no velocity will change
@@ -196,8 +196,14 @@ int main(int argc, char **argv)
 
   init();
 
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
   /* Allocate global shared arrays for the particles data set. */
   particles = malloc(sizeof(particle_t) * nparticles);
+  local_sizes = malloc(sizeof(int) * size);
+  displs = malloc(sizeof(int) * size);
   xforces = malloc(sizeof(double) * nparticles);
   yforces = malloc(sizeof(double) * nparticles);
   all_init_particles(nparticles, particles);
@@ -213,7 +219,7 @@ int main(int argc, char **argv)
 
   /* Main thread starts simulation ... */
 
-  run_simulation();
+  run_simulation(rank, size);
 
   gettimeofday(&t2, NULL);
 
@@ -225,8 +231,7 @@ int main(int argc, char **argv)
   print_all_particles(f_out);
   fclose(f_out);
 #endif
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);;
+  
   if (rank == 0)
   {
     printf("-----------------------------\n");
@@ -238,6 +243,7 @@ int main(int argc, char **argv)
 
   free(xforces);
   free(yforces);
+  free(local_sizes);
 
 #ifdef DISPLAY
   clear_display();
