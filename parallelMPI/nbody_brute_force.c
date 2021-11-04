@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <unistd.h>
+#include "nbody_tools.h"
 
 #ifdef DISPLAY
 #include <X11/Xlib.h>
@@ -18,7 +19,7 @@
 
 #include "ui.h"
 #include "nbody.h"
-#include "nbody_tools.h"
+#include <mpi.h>
 
 FILE* f_out=NULL;
 
@@ -85,11 +86,11 @@ void move_particle(particle_t*p, double step) {
   Update positions, velocity, and acceleration.
   Return local computations.
 */
-void all_move_particles(double step)
+void all_move_particles(double step, int lower_bound, int size)
 {
   /* First calculate force for particles. */
   int i;
-  for(i=0; i<nparticles; i++) {
+  for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
     int j;
     particles[i].x_force = 0;
     particles[i].y_force = 0;
@@ -101,9 +102,10 @@ void all_move_particles(double step)
   }
 
   // barrier
+  MPI_Barrier(MPI_COMM_WORLD);
 
   /* then move all particles and return statistics */
-  for(i=0; i<nparticles; i++) {
+  for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
     move_particle(&particles[i], step);
   }
 }
@@ -127,12 +129,18 @@ void print_all_particles(FILE* f) {
 }
 
 void run_simulation() {
+  int size, rank, lower_bound;
+  MPI_Init(NULL, NULL);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  lower_bound = rank * (nparticles / size);
   double t = 0.0, dt = 0.01;
+
   while (t < T_FINAL && nparticles>0) {
     /* Update time. */
     t += dt;
     /* Move particles with the current and compute rms velocity. */
-    all_move_particles(dt);
+    all_move_particles(dt, lower_bound, size);
 
     /* Adjust dt based on maximum speed and acceleration--this
        simple rule tries to insure that no velocity will change
@@ -147,6 +155,7 @@ void run_simulation() {
     flush_display();
 #endif
   }
+  MPI_Finalize();
 }
 
 /*
@@ -177,7 +186,10 @@ int main(int argc, char**argv)
   gettimeofday(&t1, NULL);
 
   /* Main thread starts simulation ... */
+
+  print_error("aaa");
   run_simulation();
+  print_error("bbb");
 
   gettimeofday(&t2, NULL);
 
@@ -206,6 +218,7 @@ int main(int argc, char**argv)
   getchar();
   /* Close the X window used to display the particles */
   XCloseDisplay(theDisplay);
+
 #endif
   return 0;
 }
