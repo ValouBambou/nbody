@@ -33,21 +33,28 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
                 monothreadtime = float(s.split(' ')[2])
             speedup[i] = monothreadtime / float(s.split(' ')[2])
             print("time taken = {} s".format(float(s.split(' ')[2])))
-            f.write("{}\t{}".format(n, speedup[i]))
+            f.write("{}\t{}\n".format(n, speedup[i]))
             i += 1
     return speedup
+
 
 def main():
     nthreads = [i for i in range(1, 16)]
     nparticles = 1000
     ntime = 5
-    command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
+
+    subprocess.Popen("make").communicate()
+    command_bfs = "./nbody_brute_force {} {} {}".format(nparticles, ntime, "static")
+    command_bfd = "./nbody_brute_force {} {} {}".format(nparticles, ntime, "dynamic")
     command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
 
-    speedup1 = generate_data(command1, nthreads, "bruteforce.data")
+    subprocess.Popen("rm *.data", shell=True).communicate()
+    speedup_bfs = generate_data(command_bfs, nthreads, "bruteforce_static.data")
+    speedup_bfd = generate_data(command_bfd, nthreads, "bruteforce_dynamic.data")
     speedup2 = generate_data(command2, nthreads, "barnes_hut.data")
 
-    plot_speedup(nthreads, {"openMP":speedup1}, "bruteforceOMPspeedup.png", "Brute force speedup")
+    subprocess.Popen("rm *.png", shell=True).communicate()
+    plot_speedup(nthreads, {"OMPstatic":speedup_bfs, "OMPdynamic":speedup_bfd}, "bruteforceOMPspeedup.png", "Brute force speedup")
     plot_speedup(nthreads, {"openMP":speedup2}, "barnes_hutOMPspeedup.png", "Barnes Hut speedup")
 
 if __name__ == '__main__':

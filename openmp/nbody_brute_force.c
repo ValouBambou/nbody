@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <unistd.h>
+#include <string.h>
 
 #ifdef DISPLAY
 #include <X11/Xlib.h>
@@ -79,14 +80,35 @@ void move_particle(particle_t*p, double step) {
   max_speed = MAX(max_speed, cur_speed);
 }
 
-
 /*
   Move particles one time step.
 
   Update positions, velocity, and acceleration.
   Return local computations.
 */
-void all_move_particles(double step)
+void all_move_particles_dyn(double step)
+{
+  /* First calculate force for particles. */
+  int i;
+  #pragma omp parallel for private(i) schedule(dynamic)
+  for(i=0; i<nparticles; i++) {
+    int j;
+    particles[i].x_force = 0;
+    particles[i].y_force = 0;
+    for(j=0; j<nparticles; j++) {
+      particle_t*p = &particles[j];
+      /* compute the force of particle j on particle i */
+      compute_force(&particles[i], p->x_pos, p->y_pos, p->mass);
+    }
+  }
+
+  /* then move all particles and return statistics */
+  for(i=0; i<nparticles; i++) {
+    move_particle(&particles[i], step);
+  }
+}
+
+void all_move_particles_static(double step)
 {
   /* First calculate force for particles. */
   int i;
@@ -126,6 +148,8 @@ void print_all_particles(FILE* f) {
   }
 }
 
+void (*all_move_particles)(double) = &all_move_particles_dyn;
+
 void run_simulation() {
   double t = 0.0, dt = 0.01;
   while (t < T_FINAL && nparticles>0) {
@@ -157,9 +181,18 @@ int main(int argc, char**argv)
   if(argc >= 2) {
     nparticles = atoi(argv[1]);
   }
-  if(argc == 3) {
+  if(argc >= 3) {
     T_FINAL = atof(argv[2]);
   }
+
+  if (argc >= 4)
+  {
+    if (strcmp(argv[3], "static") == 0)
+    {
+      all_move_particles = &all_move_particles_static;
+    }
+  }
+  
 
   init();
 
