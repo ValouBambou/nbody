@@ -33,6 +33,6 @@ node_t* alloc_node();
 void free_root(node_t*root);
 
 /* Print to error channel */
-void error(char* text);
+void print_error(char* text);
 
 #endif	/* NBODY_TOOLS_H */

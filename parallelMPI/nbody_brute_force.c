@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <unistd.h>
+#include "nbody_tools.h"
 
 #ifdef DISPLAY
 #include <X11/Xlib.h>
@@ -18,7 +19,6 @@
 
 #include "ui.h"
 #include "nbody.h"
-#include "nbody_tools.h"
 #include <mpi.h>
 
 FILE* f_out=NULL;
@@ -187,8 +187,9 @@ int main(int argc, char**argv)
 
   /* Main thread starts simulation ... */
 
+  print_error("aaa");
   run_simulation();
-  error("before mpi finalize");
+  print_error("bbb");
 
   gettimeofday(&t2, NULL);
 
