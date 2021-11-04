@@ -1,7 +1,7 @@
 #! /bin/bash
 if [ $# -eq 0 ] ; then
-	echo "usage: nbody_brute_force nparticules ntime nthreads"
-    echo "usage: nbody_barnes_hut nparticules ntime nthreads"
+	echo "usage: nbody_brute_force nparticules ntime (static or dynamic) nthreads"
+    echo "usage: nbody_barnes_hut nparticules ntime (implem1 or implem2) nthreads"
 	exit 0
 fi
 export OMP_NUM_THREADS=$4
