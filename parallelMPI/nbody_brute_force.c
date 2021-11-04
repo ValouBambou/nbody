@@ -86,14 +86,8 @@ void move_particle(particle_t*p, double step) {
   Update positions, velocity, and acceleration.
   Return local computations.
 */
-void all_move_particles(double step)
+void all_move_particles(double step, int lower_bound, int size)
 {
-  int size, rank, lower_bound;
-  MPI_Init(NULL, NULL);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  lower_bound = rank * (nparticles / size);
-
   /* First calculate force for particles. */
   int i;
   for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
@@ -114,7 +108,6 @@ void all_move_particles(double step)
   for(i=lower_bound; i<lower_bound + (nparticles/size); i++) {
     move_particle(&particles[i], step);
   }
-  MPI_Finalize();
 }
 
 /* display all the particles */
@@ -136,13 +129,18 @@ void print_all_particles(FILE* f) {
 }
 
 void run_simulation() {
+  int size, rank, lower_bound;
+  MPI_Init(NULL, NULL);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  lower_bound = rank * (nparticles / size);
   double t = 0.0, dt = 0.01;
 
   while (t < T_FINAL && nparticles>0) {
     /* Update time. */
     t += dt;
     /* Move particles with the current and compute rms velocity. */
-    all_move_particles(dt);
+    all_move_particles(dt, lower_bound, size);
 
     /* Adjust dt based on maximum speed and acceleration--this
        simple rule tries to insure that no velocity will change
@@ -157,6 +155,7 @@ void run_simulation() {
     flush_display();
 #endif
   }
+  MPI_Finalize();
 }
 
 /*
