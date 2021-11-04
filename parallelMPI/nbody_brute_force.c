@@ -102,6 +102,7 @@ void all_move_particles(double step, int lower_bound, int size)
   }
 
   // barrier
+  print_error("synchro");
   MPI_Barrier(MPI_COMM_WORLD);
 
   /* then move all particles and return statistics */
@@ -136,6 +137,7 @@ void run_simulation() {
   lower_bound = rank * (nparticles / size);
   double t = 0.0, dt = 0.01;
 
+  print_error("Successful MPI Init\n");
   while (t < T_FINAL && nparticles>0) {
     /* Update time. */
     t += dt;

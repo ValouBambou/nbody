@@ -23,8 +23,8 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
     i = 0
     with open(filename, "w") as f:
         for n in nthreads:
-            command_new = "mpirun -n {} ".format(n) + command
-            print("Lauching {}".format(command))
+            command_new = "mpirun -n {} {}".format(n, command)
+            print("Lauching {}".format(command_new))
             process = subprocess.Popen(command_new.split(' '), stdout=subprocess.PIPE)
             output, _ = process.communicate()
             s = str(output.splitlines()[4])
