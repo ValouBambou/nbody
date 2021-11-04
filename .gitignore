@@ -55,6 +55,6 @@ dkms.conf
 */nbody_barnes_hut
 */nbody_brute_force
 */*.png
-*.*.data
+*/*.data
 */*.inc
 */*.txt
