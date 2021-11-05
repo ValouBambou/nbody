@@ -239,7 +239,7 @@ int main(int argc, char**argv)
   init();
 
   /* Allocate global shared arrays for the particles data set. */
-  particles = malloc(sizeof(particle_t)*nparticles);
+  particles = (particles_t*)malloc(sizeof(particle_t)*nparticles);
   all_init_particles(nparticles, particles);
 
   /* Initialize thread data structures */
