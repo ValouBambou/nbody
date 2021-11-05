@@ -204,7 +204,7 @@ __global__ void calculate_forces(particle_t* gpu_particles) {
   atomicAdd(&(p->y_force), grav_base*y_sep);
 }
 
-__global__ void move_all_particles(particle_t* gpu_particles, double step) {
+__global__ void move_all_particles(particle_t* gpu_particles, double step, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed) {
   int i = blockIdx.x;
 
   particle_t* p = &gpu_particles[i];
@@ -221,16 +221,16 @@ __global__ void move_all_particles(particle_t* gpu_particles, double step) {
   double speed_sq = (p->x_vel)*(p->x_vel) + (p->y_vel)*(p->y_vel);
   double cur_speed = sqrt(speed_sq);
 
-  atomicAdd(&sum_speed_sq, speed_sq);
-  atomicMax(&max_acc, cur_acc);
-  atomicMax(&max_speed, cur_speed);
+  atomicAdd(gpu_sum_speed_sq, speed_sq);
+  atomicMax(gpu_max_acc, cur_acc);
+  atomicMax(gpu_max_speed, cur_speed);
 }
 
 // Les kernel sont des points de synchro askip donc ca devrait etre bon
-void all_move_particles_kernel(double step, particle_t* gpu_particles) {
+void all_move_particles_kernel(double step, particle_t* gpu_particles, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed) {
   reset_forces <<< nparticles, nparticles >>> (gpu_particles);
   calculate_forces <<< nparticles, nparticles >>> (gpu_particles);
-  move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step);
+  move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed);
 } 
 
 
@@ -240,11 +240,11 @@ void run_simulation() {
   double gpu_sum_speed_sq, gpu_max_acc, gpu_max_speed;
   size_t size = nparticles * sizeof(particle_t);
 
-  cudaMalloc(&gpu_sum_speed_sq, sizeof(double));
+  cudaMalloc(&gpu_sum_speed_sq, (size_t)sizeof(double));
   cudaMemcpy(&gpu_sum_speed_sq, &sum_speed_sq, sizeof(double), cudaMemcpyHostToDevice);
-  cudaMalloc(&gpu_max_acc, sizeof(double));
+  cudaMalloc(&gpu_max_acc, (size_t)sizeof(double));
   cudaMemcpy(&gpu_max_acc, &max_acc, sizeof(double), cudaMemcpyHostToDevice);
-  cudaMalloc(&gpu_max_speed, sizeof(double));
+  cudaMalloc(&gpu_max_speed, (size_t)sizeof(double));
   cudaMemcpy(&gpu_max_speed, &max_speed, sizeof(double), cudaMemcpyHostToDevice);
 
   cudaMalloc((void**)&gpu_particles, size);
@@ -258,7 +258,7 @@ void run_simulation() {
     /* Update time. */
     t += dt;
     /* Move particles with the current and compute rms velocity. */
-    all_move_particles_kernel(dt, gpu_particles);
+    all_move_particles_kernel(dt, gpu_particles, &gpu_sum_speed_sq, &gpu_max_acc, &gpu_max_speed);
 
     /* Adjust dt based on maximum speed and acceleration--this
        simple rule tries to insure that no velocity will change
@@ -276,9 +276,9 @@ void run_simulation() {
   
   cudaMemcpy(particles, gpu_particles, size, cudaMemcpyDeviceToHost);
   cudaFree(gpu_particles);
-  cudaFree(gpu_sum_speed_sq);
-  cudaFree(gpu_max_acc);
-  cudaFree(gpu_max_speed);
+  cudaFree(&gpu_sum_speed_sq);
+  cudaFree(&gpu_max_acc);
+  cudaFree(&gpu_max_speed);
 }
 
 /*
