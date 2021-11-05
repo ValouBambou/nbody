@@ -183,7 +183,7 @@ __global__ void calculate_forces(particle_t* gpu_particles) {
   dist_sq = MAX((x_sep*x_sep) + (y_sep*y_sep), 0.01);
 
   /* Use the 2-dimensional gravity rule: F = d * (GMm/d^2) */
-  grav_base = GRAV_CONSTANT*(p->mass)*(mass)/dist_sq;
+  grav_base = GRAV_CONSTANT*(p->mass)*(p_distant->mass)/dist_sq;
 
   atomicAdd(&(p->x_force), grav_base*x_sep);
   atomicAdd(&(p->y_force), grav_base*y_sep);
@@ -192,7 +192,7 @@ __global__ void calculate_forces(particle_t* gpu_particles) {
 __global__ void move_all_particles(particle_t* gpu_particles, double step) {
   int i = blockIdx.x;
 
-  particle_t* p = &gpu_particles[i]
+  particle_t* p = &gpu_particles[i];
   p->x_pos += (p->x_vel)*step;
   p->y_pos += (p->y_vel)*step;
   double x_acc = p->x_force/p->mass;
