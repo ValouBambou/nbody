@@ -1,5 +1,5 @@
 CC	= mpicc
-CFLAGS	= -O0 -ggdb -Wall -Wextra -fsanitize=undefined -fexceptions
+CFLAGS	= -fopenmp -O0 -ggdb -Wall -Wextra -fsanitize=undefined -fexceptions
 LDFLAGS = -lm -lpthread -lX11 -fopenmp -fsanitize=undefined
 VERBOSE	=
 TARGET	= nbody_brute_force nbody_barnes_hut
