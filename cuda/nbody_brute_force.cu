@@ -128,7 +128,53 @@ void print_all_particles(FILE* f) {
   }
 }
 
-__global__ void compute_force_atomic(particle_t*p, double x_pos, double y_pos, double mass) {
+// __global__ void compute_force_atomic(particle_t*p, double x_pos, double y_pos, double mass) {
+//   double x_sep, y_sep, dist_sq, grav_base;
+
+//   x_sep = x_pos - p->x_pos;
+//   y_sep = y_pos - p->y_pos;
+//   dist_sq = MAX((x_sep*x_sep) + (y_sep*y_sep), 0.01);
+
+//   /* Use the 2-dimensional gravity rule: F = d * (GMm/d^2) */
+//   grav_base = GRAV_CONSTANT*(p->mass)*(mass)/dist_sq;
+
+//   atomicAdd(&(p->x_force), grav_base*x_sep);
+//   atomicAdd(&(p->y_force), grav_base*y_sep);
+// }
+
+// __global__ void move_particle_atomic(particle_t*p, double step) {
+
+//   p->x_pos += (p->x_vel)*step;
+//   p->y_pos += (p->y_vel)*step;
+//   double x_acc = p->x_force/p->mass;
+//   double y_acc = p->y_force/p->mass;
+//   p->x_vel += x_acc*step;
+//   p->y_vel += y_acc*step;
+
+//   /* compute statistics */
+//   double cur_acc = (x_acc*x_acc + y_acc*y_acc);
+//   cur_acc = sqrt(cur_acc);
+//   double speed_sq = (p->x_vel)*(p->x_vel) + (p->y_vel)*(p->y_vel);
+//   double cur_speed = sqrt(speed_sq);
+
+//   atomicAdd(&sum_speed_sq, speed_sq);
+//   atomicMax(&max_acc, cur_acc);
+//   atomicMax(&max_speed, cur_speed);
+// }
+
+__global__ void kernel(void) {}
+
+__global__ void reset_forces(particle_t* gpu_particles) {
+  int i = blockIdx.x;
+  gpu_particles[i].x_force = 0;
+  gpu_particles[i].y_force = 0;
+}
+
+__global__ void calculate_forces(particle_t* gpu_particles) {
+  int i = blockIdx.x;
+  int j = blockIdx.y;
+  particle_t* p = &gpu_particles[j];
+
   double x_sep, y_sep, dist_sq, grav_base;
 
   x_sep = x_pos - p->x_pos;
@@ -142,8 +188,10 @@ __global__ void compute_force_atomic(particle_t*p, double x_pos, double y_pos, d
   atomicAdd(&(p->y_force), grav_base*y_sep);
 }
 
-__global__ void move_particle_atomic(particle_t*p, double step) {
+__global__ void move_all_particles(particle_t* gpu_particles, double step) {
+  int i = blockIdx.x;
 
+  particle_t* p = &gpu_particles[i]
   p->x_pos += (p->x_vel)*step;
   p->y_pos += (p->y_vel)*step;
   double x_acc = p->x_force/p->mass;
@@ -160,26 +208,6 @@ __global__ void move_particle_atomic(particle_t*p, double step) {
   atomicAdd(&sum_speed_sq, speed_sq);
   atomicMax(&max_acc, cur_acc);
   atomicMax(&max_speed, cur_speed);
-}
-
-__global__ void kernel(void) {}
-
-__global__ void reset_forces(particle_t* gpu_particles) {
-  int i = blockIdx.x;
-  gpu_particles[i].x_force = 0;
-  gpu_particles[i].y_force = 0;
-}
-
-__global__ void calculate_forces(particle_t* gpu_particles) {
-  int i = blockIdx.x;
-  int j = blockIdx.y;
-  particle_t* p = &gpu_particles[j];
-  compute_force_atomic <<< nparticles, 1 >>> (&gpu_particles[i], p->x_pos, p->y_pos, p->mass);
-}
-
-__global__ void move_all_particles(particle_t* gpu_particles, double step) {
-  int i = blockIdx.x;
-  move_particle_atomic <<< nparticles, 1 >>> (&gpu_particles[i], step);
 }
 
 // Les kernel sont des points de synchro askip donc ca devrait etre bon
