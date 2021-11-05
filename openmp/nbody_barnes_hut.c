@@ -130,7 +130,8 @@ void compute_force_in_node(node_t *n) {
   if(n->children) {
     int i;
     for(i=0; i<4; i++) {
-      compute_force_in_node(&n->children[i]);
+      #pragma omp task
+      {compute_force_in_node(&n->children[i]);}
     }
   }
 }
@@ -192,7 +193,14 @@ void move_particles_in_node(node_t*n, double step, node_t *new_root) {
 void all_move_particles(double step)
 {
   /* First calculate force for particles. */
-  compute_force_in_node(root);
+  #pragma omp parallel 
+  {
+    #pragma omp single
+    {
+      compute_force_in_node(root);
+    }
+  }
+  
 
   node_t* new_root = alloc_node();
   init_node(new_root, NULL, XMIN, XMAX, YMIN, YMAX);
