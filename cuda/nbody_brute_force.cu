@@ -21,8 +21,9 @@
 #include "nbody_tools.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <helper_cuda.h>
 
+// /usr/local/cuda/samples/common/inc
+#include <helper_cuda.h> 
 FILE* f_out=NULL;
 
 int nparticles=10;      /* number of particles */
