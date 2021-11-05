@@ -237,9 +237,19 @@ void all_move_particles_kernel(double step, particle_t* gpu_particles) {
 void run_simulation() {
   // CUDA Setup
   particle_t* gpu_particles;
-  int size = nparticles * sizeof(particle_t); 
+  double gpu_sum_speed_sq, gpu_max_acc, gpu_max_speed;
+  size_t size = nparticles * sizeof(particle_t);
+
+  cudaMalloc(&gpu_sum_speed_sq, sizeof(double));
+  cudaMemcpy(&gpu_sum_speed_sq, &sum_speed_sq, sizeof(double), cudaMemcpyHostToDevice);
+  cudaMalloc(&gpu_max_acc, sizeof(double));
+  cudaMemcpy(&gpu_max_acc, &max_acc, sizeof(double), cudaMemcpyHostToDevice);
+  cudaMalloc(&gpu_max_speed, sizeof(double));
+  cudaMemcpy(&gpu_max_speed, &max_speed, sizeof(double), cudaMemcpyHostToDevice);
+
   cudaMalloc((void**)&gpu_particles, size);
   cudaMemcpy(gpu_particles, particles, size, cudaMemcpyHostToDevice);
+
   dim3 grid(nparticles, nparticles);
 
 
@@ -263,9 +273,12 @@ void run_simulation() {
     flush_display();
 #endif
   }
+  
   cudaMemcpy(particles, gpu_particles, size, cudaMemcpyDeviceToHost);
   cudaFree(gpu_particles);
-
+  cudaFree(gpu_sum_speed_sq);
+  cudaFree(gpu_max_acc);
+  cudaFree(gpu_max_speed);
 }
 
 /*
