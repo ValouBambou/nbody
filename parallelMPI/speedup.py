@@ -11,14 +11,14 @@ def plot_speedup(x_threads:List[int], y_dict:Dict[str, List[float]], filename:st
     for key in y_dict:
         plt.plot(x_threads, y_dict[key], label=key)
     plt.title(title)
-    plt.xlabel("number of threads")
+    plt.xlabel("number of usued cores")
     plt.ylabel("speedup")
     plt.legend()
     plt.savefig(filename)
     plt.show()
 
 
-def generate_data(command:str, nprocesses:List[int], filename:str) -> List[float]:
+def generate_data(command:str, nprocesses:List[int], nthreads:int, filename:str) -> List[float]:
     speedup = [1.0 for _ in range(len(nprocesses))]
     i = 0
     monothreadtime = 1.0
@@ -26,7 +26,7 @@ def generate_data(command:str, nprocesses:List[int], filename:str) -> List[float
         for n in nprocesses:
             command_new = "mpirun -n {} {}".format(n, command)
             print("Lauching {}".format(command_new))
-            process = subprocess.Popen(command_new.split(' '), stdout=subprocess.PIPE)
+            process = subprocess.Popen(command_new.split(' '), stdout=subprocess.PIPE, env={'OMP_NUM_THREADS':str(nthreads)})
             output, _ = process.communicate()
             s = str(output.splitlines()[4])
             if n == 1:
@@ -40,18 +40,18 @@ def generate_data(command:str, nprocesses:List[int], filename:str) -> List[float
 def main():
     subprocess.Popen("make").communicate()
     nprocesses = [i for i in range(1, 9)] # 9 is the max on my labtop
-    nparticles = 100
-    ntime = 5
+    nthreads = [i for i in range(1, 12)]
+    nparticles = 5000
+    ntime = 1
     command1 = "./nbody_brute_force {} {}".format(nparticles, ntime)
     # command2 = "./nbody_barnes_hut {} {}".format(nparticles, ntime)
 
     subprocess.Popen("rm *.data", shell=True).communicate()
-    speedup1 = generate_data(command1, nprocesses, "bruteforce.data")
-    print(speedup1)
+    speedup_omp_mpi_bf = [generate_data(command1, nprocesses, nt, "bruteforce.data") for nt in nthreads]
     # speedup2 = generate_data(command2, nprocesses, "barnes_hut.data")
 
     subprocess.Popen("rm *.png", shell=True).communicate()
-    plot_speedup(nprocesses, {"MPI":speedup1}, "bruteforceMPIspeedup.png", "Brute force speedup")
+    plot_speedup(nprocesses, {"MPI + {} OMP threads".format(nthreads[i]):speedup_omp_mpi_bf[i] for i in range(len(nthreads))}, "bruteforceMPIspeedup.png", "Brute force speedup")
     # plot_speedup(nprocesses, {"MPI":speedup2}, "barnes_hutMPIspeedup.png", "Barnes Hut speedup")
 
 if __name__ == '__main__':
