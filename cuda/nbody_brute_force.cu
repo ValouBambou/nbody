@@ -173,12 +173,13 @@ __global__ void reset_forces(particle_t* gpu_particles) {
 __global__ void calculate_forces(particle_t* gpu_particles) {
   int i = blockIdx.x;
   int j = blockIdx.y;
-  particle_t* p = &gpu_particles[j];
+  particle_t* p = &gpu_particles[i];
+  particle_t* p_distant = &gpu_particles[j];
 
   double x_sep, y_sep, dist_sq, grav_base;
 
-  x_sep = x_pos - p->x_pos;
-  y_sep = y_pos - p->y_pos;
+  x_sep = p->x_pos - p_distant->x_pos;
+  y_sep = p->y_pos - p_distant->y_pos;
   dist_sq = MAX((x_sep*x_sep) + (y_sep*y_sep), 0.01);
 
   /* Use the 2-dimensional gravity rule: F = d * (GMm/d^2) */
