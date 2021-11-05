@@ -165,27 +165,27 @@ __global__ void kernel(void) {}
 
 __global__ void reset_forces(particle_t* gpu_particles) {
   int i = blockIdx.x;
-  gpu_particles[i]->x_force = 0;
-  gpu_particles[i]->y_force = 0;
+  gpu_particles[i].x_force = 0;
+  gpu_particles[i].y_force = 0;
 }
 
 __global__ void calculate_forces(particle_t* gpu_particles) {
   int i = blockIdx.x;
-  int j = blockIdy.y;
+  int j = blockIdx.y;
   particle_t* p = &gpu_particles[j];
-  compute_force_atomic(&gpu_particles[i], p->x_pos, p->y_pos, p->mass);
+  compute_force_atomic <<< nparticles, 1 >>> (&gpu_particles[i], p->x_pos, p->y_pos, p->mass);
 }
 
 __global__ void move_all_particles(particle_t* gpu_particles, double step) {
   int i = blockIdx.x;
-  move_particle_atomic(&gpu_particles[i], step);
+  move_particle_atomic <<< nparticles, 1 >>> (&gpu_particles[i], step);
 }
 
 // Les kernel sont des points de synchro askip donc ca devrait etre bon
 void all_move_particles_kernel(double step, particle_t* gpu_particles) {
   reset_forces <<< nparticles, nparticles >>> (gpu_particles);
   calculate_forces <<< nparticles, nparticles >>> (gpu_particles);
-  move_all_particles <<< nparticles, nparticles >>> (gpu_particles);
+  move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step);
 } 
 
 
