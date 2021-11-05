@@ -230,7 +230,7 @@ __global__ void move_all_particles(particle_t* gpu_particles, double step, doubl
 void all_move_particles_kernel(double step, particle_t* gpu_particles, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed) {
   reset_forces <<< nparticles, nparticles >>> (gpu_particles);
   calculate_forces <<< nparticles, nparticles >>> (gpu_particles);
-  move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed);
+  move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step, gpu_sum_speed_sq, gpu_max_acc, gpu_max_speed);
 } 
 
 
@@ -240,11 +240,11 @@ void run_simulation() {
   double gpu_sum_speed_sq, gpu_max_acc, gpu_max_speed;
   size_t size = nparticles * sizeof(particle_t);
 
-  cudaMalloc(&gpu_sum_speed_sq, (size_t)sizeof(double));
+  cudaMalloc((void**)&gpu_sum_speed_sq, (size_t)sizeof(double));
   cudaMemcpy(&gpu_sum_speed_sq, &sum_speed_sq, sizeof(double), cudaMemcpyHostToDevice);
-  cudaMalloc(&gpu_max_acc, (size_t)sizeof(double));
+  cudaMalloc((void**)&gpu_max_acc, (size_t)sizeof(double));
   cudaMemcpy(&gpu_max_acc, &max_acc, sizeof(double), cudaMemcpyHostToDevice);
-  cudaMalloc(&gpu_max_speed, (size_t)sizeof(double));
+  cudaMalloc((void**)&gpu_max_speed, (size_t)sizeof(double));
   cudaMemcpy(&gpu_max_speed, &max_speed, sizeof(double), cudaMemcpyHostToDevice);
 
   cudaMalloc((void**)&gpu_particles, size);
