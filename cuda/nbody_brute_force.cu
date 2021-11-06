@@ -48,6 +48,34 @@ __device__ static double atomicMax(double* address, double val)
     return __longlong_as_double(old);
 }
 
+/*
+  Place particles in their initial positions.
+*/
+void all_init_particles(int num_particles, particle_t *particles)
+{
+  int    i;
+  double total_particle = num_particles;
+
+  for (i = 0; i < num_particles; i++) {
+    particle_t *particle = &particles[i];
+#if 0
+    particle->x_pos = ((rand() % max_resolution)- (max_resolution/2))*2.0 / max_resolution;
+    particle->y_pos = ((rand() % max_resolution)- (max_resolution/2))*2.0 / max_resolution;
+    particle->x_vel = particle->y_pos;
+    particle->y_vel = particle->x_pos;
+#else
+    particle->x_pos = i*2.0/nparticles - 1.0;
+    particle->y_pos = 0.0;
+    particle->x_vel = 0.0;
+    particle->y_vel = particle->x_pos;
+#endif
+    particle->mass = 1.0 + (num_particles+i)/total_particle;
+    particle->node = NULL;
+
+    //insert_particle(particle, root);
+  }
+}
+
 
 void init() {
   /* Nothing to do */
@@ -131,7 +159,7 @@ void draw_all_particles() {
   for(i=0; i<nparticles; i++) {
     int x = POS_TO_SCREEN(particles[i].x_pos);
     int y = POS_TO_SCREEN(particles[i].y_pos);
-    draw_point (x,y);
+    draw_point(x,y);
   }
 }
 
@@ -142,42 +170,6 @@ void print_all_particles(FILE* f) {
     fprintf(f, "particle={pos=(%f,%f), vel=(%f,%f)}\n", p->x_pos, p->y_pos, p->x_vel, p->y_vel);
   }
 }
-
-// __global__ void compute_force_atomic(particle_t*p, double x_pos, double y_pos, double mass) {
-//   double x_sep, y_sep, dist_sq, grav_base;
-
-//   x_sep = x_pos - p->x_pos;
-//   y_sep = y_pos - p->y_pos;
-//   dist_sq = MAX((x_sep*x_sep) + (y_sep*y_sep), 0.01);
-
-//   /* Use the 2-dimensional gravity rule: F = d * (GMm/d^2) */
-//   grav_base = GRAV_CONSTANT*(p->mass)*(mass)/dist_sq;
-
-//   atomicAdd(&(p->x_force), grav_base*x_sep);
-//   atomicAdd(&(p->y_force), grav_base*y_sep);
-// }
-
-// __global__ void move_particle_atomic(particle_t*p, double step) {
-
-//   p->x_pos += (p->x_vel)*step;
-//   p->y_pos += (p->y_vel)*step;
-//   double x_acc = p->x_force/p->mass;
-//   double y_acc = p->y_force/p->mass;
-//   p->x_vel += x_acc*step;
-//   p->y_vel += y_acc*step;
-
-//   /* compute statistics */
-//   double cur_acc = (x_acc*x_acc + y_acc*y_acc);
-//   cur_acc = sqrt(cur_acc);
-//   double speed_sq = (p->x_vel)*(p->x_vel) + (p->y_vel)*(p->y_vel);
-//   double cur_speed = sqrt(speed_sq);
-
-//   atomicAdd(&sum_speed_sq, speed_sq);
-//   atomicMax(&max_acc, cur_acc);
-//   atomicMax(&max_speed, cur_speed);
-// }
-
-__global__ void kernel(void) {}
 
 __global__ void reset_forces(particle_t* gpu_particles) {
   int i = blockIdx.x;
