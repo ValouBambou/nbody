@@ -12,8 +12,8 @@
 #include <unistd.h>
 
 #ifdef DISPLAY
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+// #include <X11/Xlib.h>
+// #include <X11/Xutil.h>
 #endif
 
 #include "ui.h"
@@ -227,7 +227,7 @@ __global__ void move_all_particles(particle_t* gpu_particles, double step, doubl
 }
 
 // Les kernel sont des points de synchro askip donc ca devrait etre bon
-void all_move_particles_kernel(double step, particle_t* gpu_particles, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed) {
+void all_move_particles_cuda(double step, particle_t* gpu_particles, double* gpu_sum_speed_sq, double* gpu_max_acc, double* gpu_max_speed) {
   reset_forces <<< nparticles, nparticles >>> (gpu_particles);
   calculate_forces <<< nparticles, nparticles >>> (gpu_particles);
   move_all_particles <<< nparticles, nparticles >>> (gpu_particles, step, gpu_sum_speed_sq, gpu_max_acc, gpu_max_speed);
@@ -258,7 +258,7 @@ void run_simulation() {
     /* Update time. */
     t += dt;
     /* Move particles with the current and compute rms velocity. */
-    all_move_particles_kernel(dt, gpu_particles, &gpu_sum_speed_sq, &gpu_max_acc, &gpu_max_speed);
+    all_move_particles_cuda(dt, gpu_particles, &gpu_sum_speed_sq, &gpu_max_acc, &gpu_max_speed);
 
     /* Adjust dt based on maximum speed and acceleration--this
        simple rule tries to insure that no velocity will change
