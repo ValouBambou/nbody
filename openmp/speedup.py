@@ -26,7 +26,7 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
     with open(filename, "w") as f:
         for n in nthreads:
             print("Lauching {} with {} threads".format(command, n))
-            process = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE, env={'OMP_NUM_THREADS':str(n)})
+            process = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE, env={'OMP_NUM_THREADS':str(n), 'OMP_NESTED':'TRUE'})
             output, _ = process.communicate()
             s = str(output.splitlines()[4])
             if n == 1:
@@ -40,8 +40,8 @@ def generate_data(command:str, nthreads:List[int], filename:str) -> List[float]:
 
 def main():
     nthreads = [i for i in range(1, 16)]
-    nparticles = 1000
-    ntime = 5
+    nparticles = 2000
+    ntime = 1
 
     subprocess.Popen("make").communicate()
     command_bfs = "./nbody_brute_force {} {} {}".format(nparticles, ntime, "static")
