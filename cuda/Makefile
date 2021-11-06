@@ -8,7 +8,7 @@ NVCC=$(CUDA_HOME)/bin/nvcc
 
 NVCFLAGS= -I $(CUDA_HOME)/include -I$(CUDASDK)/common/inc
 
-CFLAGS= -L $(CUDA_HOME)/lib64 -L $(CUDANVIDIA) -arch=sm_60
+CFLAGS= -L $(CUDA_HOME)/lib64 -L $(CUDANVIDIA) -arch=sm_60 -lX11
 
 VERBOSE	=
 TARGET	= nbody_brute_force nbody_barnes_hut
