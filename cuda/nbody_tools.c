@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "ui.h"
+//#include "ui.h"
 #include "nbody.h"
 #include "nbody_tools.h"
 #include "nbody_alloc.h"
