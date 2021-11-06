@@ -131,7 +131,8 @@ void draw_all_particles() {
   for(i=0; i<nparticles; i++) {
     int x = POS_TO_SCREEN(particles[i].x_pos);
     int y = POS_TO_SCREEN(particles[i].y_pos);
-    draw_point (x,y);
+    /* Line commented due to libs being commented 
+    draw_point (x,y); */
   }
 }
 
