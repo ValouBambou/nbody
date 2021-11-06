@@ -153,6 +153,14 @@ void all_move_particles(double step)
   }
 }
 
+void draw_point(int x, int y)
+{
+  XSetForeground(theDisplay, theGC, black.pixel);
+  XDrawPoint(theDisplay, theMain, theGC, x, y);
+  XFlush(theDisplay);
+  XSetForeground(theDisplay, theGC, black.pixel);
+}
+
 /* display all the particles */
 void draw_all_particles() {
   int i;
