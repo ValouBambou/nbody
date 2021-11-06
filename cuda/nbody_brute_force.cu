@@ -16,7 +16,7 @@
 // #include <X11/Xutil.h>
 #endif
 
-#include "ui.h"
+//#include "ui.h"
 #include "nbody.h"
 #include "nbody_tools.h"
 #include <cuda.h>
