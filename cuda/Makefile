@@ -12,7 +12,7 @@ CFLAGS= -L $(CUDA_HOME)/lib64 -L $(CUDANVIDIA) -arch=sm_60
 
 VERBOSE	=
 TARGET	= nbody_brute_force nbody_barnes_hut
-OBJS	= ui.o xstuff.o nbody_tools.o nbody_alloc.o
+OBJS	= nbody_tools.o nbody_alloc.o
 
 #DISPLAY = -DDISPLAY
 DISPLAY =
