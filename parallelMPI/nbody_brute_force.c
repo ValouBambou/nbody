@@ -190,10 +190,15 @@ int main(int argc, char **argv)
   {
     nparticles = atoi(argv[1]);
   }
-  if (argc == 3)
+  if (argc >= 3)
   {
     T_FINAL = atof(argv[2]);
   }
+  if (argc == 4)
+  {
+    omp_set_num_threads(atoi(argv[3]));
+  }
+  
   MPI_Init(&argc, &argv);
 
   init();
