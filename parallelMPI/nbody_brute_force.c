@@ -97,7 +97,7 @@ void all_move_particles(double step, int lower_bound, int upper_bound, int np_lo
   double *xforces_local = malloc(sizeof(double) * np_local);
   double *yforces_local = malloc(sizeof(double) * np_local);
   int i;
-  #pragma omp parallel for private(i) schedule(dynamic)
+  #pragma omp parallel for private(i) schedule(static)
   for (i = lower_bound; i < upper_bound; i++)
   {
     int j;
