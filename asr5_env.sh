@@ -21,7 +21,7 @@ export CUDA_HOME=/usr/local/cuda
 export CUDA_INSTALL_PATH=${CUDA_HOME}
 export CUDA_SDK_HOME=/usr/local/cuda/samples
 export PATH=${CUDA_HOME}/bin:$PATH:.
-export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${CUDA_SDK_HOME}/common/lib/linux/x86>
+export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${CUDA_SDK_HOME}/common/lib/linux/x86_64:/usr/lib64/nvidia:$LD_LIBRARY_PATH
 export MANPATH=${CUDA_HOME}/man:$MANPATH
 
 CUPTI_ROOT=/usr/local/cuda/extras/CUPTI/
