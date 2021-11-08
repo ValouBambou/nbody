@@ -13,6 +13,7 @@ def plot_speedup(ncores: Dict[str, List[int]], y_dict: Dict[str, List[float]], f
         plt.plot(ncores[key], y_dict[key], label=key)
     plt.title(title)
     plt.xlim(xmax=max_nproc * max_nthreads * 0.4)
+    plt.ylim(ymax=max_nproc * max_nthreads * 0.4)
     plt.xlabel("number of cores")
     plt.ylabel("speedup")
     plt.legend()
