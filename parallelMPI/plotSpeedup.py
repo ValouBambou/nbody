@@ -5,9 +5,10 @@ import subprocess
 import matplotlib.pyplot as plt
 
 
-def plot_speedup(ncores: Dict[str, List[int]], y_dict: Dict[str, List[float]], filename: str, title: str) -> None:
+def plot_speedup(ncores: Dict[str, List[int]], y_dict: Dict[str, List[float]], filename: str, title: str, max_nthreads: int, max_nproc: int) -> None:
     """plot and save fig of speedup given number of cores as x and labeled speedup as y"""
-    plt.plot(ncores, ncores, label="linear")
+    linear = [i for i in range(max_nthreads * max_nproc)]
+    plt.plot(linear, linear, label="linear")
     for key in y_dict:
         plt.plot(ncores[key], y_dict[key], label=key)
     plt.title(title)
@@ -35,7 +36,8 @@ def main():
                                           for j in range(max_nthreads)] for i in range(max_nproc)}
     ncores = {"{} MPI processes".format(
         i): [i*j for j in range(1, max_nthreads+1)] for i in range(1, max_nproc)}
-    plot_speedup(ncores, d, "MPI_OMP_speedup.png", "Speedup fonction de nthreads * nproccess")
+    plot_speedup(ncores, d, "MPI_OMP_speedup.png",
+                 "Speedup fonction de nthreads * nproccess")
 
 
 if __name__ == '__main__':
