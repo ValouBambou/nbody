@@ -26,8 +26,8 @@ def main():
     with open("speedUpBruteforce.data") as f:
         for line in f.readlines():
             s = line.split('    ')
-            i = int(s[0])
-            j = int(s[1])
+            i = int(s[0]) - 1
+            j = int(s[1]) - 1
             value = float(s[2])
             data_matrix[i][j] = value
 
