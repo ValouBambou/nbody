@@ -12,6 +12,7 @@ def plot_speedup(ncores: Dict[str, List[int]], y_dict: Dict[str, List[float]], f
     for key in y_dict:
         plt.plot(ncores[key], y_dict[key], label=key)
     plt.title(title)
+    plt.xlim(max_nproc * max_nthreads * 0.4)
     plt.xlabel("number of cores")
     plt.ylabel("speedup")
     plt.legend()
@@ -32,7 +33,7 @@ def main():
             value = float(s[2])
             data_matrix[i][j] = value
 
-    d = {"{} MPI processes".format(i+1): [ data_matrix[0][0] / data_matrix[i][j]
+    d = {"{} MPI processes".format(i+1): [data_matrix[0][0] / data_matrix[i][j]
                                           for j in range(max_nthreads)] for i in range(max_nproc)}
     ncores = {"{} MPI processes".format(
         i): [i*j for j in range(1, max_nthreads+1)] for i in range(1, max_nproc+1)}
