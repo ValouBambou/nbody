@@ -24,11 +24,12 @@ def main():
     data_matrix = [[0.0 for _ in range(max_nthreads)]
                    for _ in range(max_nproc)]
     with open("speedUpBruteforce.data") as f:
-        s = f.readline().split('    ')
-        i = int(s[0])
-        j = int(s[1])
-        value = float(s[2])
-        data_matrix[i][j] = value
+        for line in f.readlines():
+            s = line.split('    ')
+            i = int(s[0])
+            j = int(s[1])
+            value = float(s[2])
+            data_matrix[i][j] = value
 
     d = {"{} MPI processes".format(i+1): [data_matrix[i][j] / data_matrix[0][0]
                                           for j in range(max_nthreads)] for i in range(max_nproc)}
