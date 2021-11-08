@@ -37,7 +37,7 @@ def main():
     ncores = {"{} MPI processes".format(
         i): [i*j for j in range(1, max_nthreads+1)] for i in range(1, max_nproc)}
     plot_speedup(ncores, d, "MPI_OMP_speedup.png",
-                 "Speedup fonction de nthreads * nproccess")
+                 "Speedup fonction de nthreads * nproccess", max_nthreads, max_nproc)
 
 
 if __name__ == '__main__':
