@@ -35,7 +35,7 @@ def main():
     d = {"{} MPI processes".format(i+1): [data_matrix[i][j] / data_matrix[0][0]
                                           for j in range(max_nthreads)] for i in range(max_nproc)}
     ncores = {"{} MPI processes".format(
-        i): [i*j for j in range(1, max_nthreads+1)] for i in range(1, max_nproc)}
+        i): [i*j for j in range(1, max_nthreads+1)] for i in range(1, max_nproc+1)}
     plot_speedup(ncores, d, "MPI_OMP_speedup.png",
                  "Speedup fonction de nthreads * nproccess", max_nthreads, max_nproc)
 
